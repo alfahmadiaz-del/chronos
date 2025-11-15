@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronos - Your Hero's Ledger</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- 1. IMPORT GOOGLE FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=EB+Garamond:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- 2. IMPORT LIBRARIES -->
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- PouchDB -->
+    <script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js"></script>
+    <!-- Icons (Feather Icons) -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- 3. "HERO'S LEDGER" THEME (CSS) -->
+    <style>
+        :root {
+            /* Dark, mythic color palette */
+            --color-bg: #1a1a1a;
+            /* Dark slate/charcoal */
+            --color-surface: #2c2c2c;
+            /* Slightly lighter stone */
+            --color-border: #444;
+            --color-text-primary: #e0e0e0;
+            /* Aged parchment white */
+            --color-text-secondary: #9e9e9e;
+            /* Muted grey */
+
+            /* Accent colors */
+            --color-bronze: #8c7853;
+            --color-bronze-dark: #6c5833;
+            --color-crimson: #6a0f0f;
+            --color-crimson-dark: #4a0a0a;
+
+            /* Fonts */
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'EB Garamond', serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            line-height: 1.7;
+            font-size: 18px;
+            overscroll-behavior: none;
+        }
+
+        #root {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* --- Typography --- */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: var(--font-heading);
+            color: var(--color-bronze);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 1rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        h4 {
+            font-size: 1.2rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        strong {
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+
+        /* --- UI Elements --- */
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .button {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--color-text-primary);
+            background-color: var(--color-bronze);
+            border: 1px solid var(--color-bronze-dark);
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background-color: var(--color-bronze-dark);
+            box-shadow: 0 0 10px var(--color-bronze);
+        }
+
+        .button.primary {
+            background-color: var(--color-crimson);
+            border-color: var(--color-crimson-dark);
+        }
+
+        .button.primary:hover {
+            background-color: var(--color-crimson-dark);
+            box-shadow: 0 0 10px var(--color-crimson);
+        }
+
+        .button.secondary {
+            background: transparent;
+            border-color: var(--color-border);
+        }
+
+        .button.secondary:hover {
+            background: var(--color-border);
+            box-shadow: none;
+        }
+
+        .button[disabled] {
+            background-color: #555;
+            color: #999;
+            cursor: not-allowed;
+            box-shadow: none;
+            border-color: #444;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            margin-bottom: 3px;
+        }
+
+        /* --- Forms --- */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.8rem;
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 5px;
+            color: var(--color-text-primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            color: var(--color-bronze);
+            border-bottom-color: var(--color-bronze);
+        }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Chronicle & Oath Cards --- */
+        .chronicle-card h4 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .chronicle-card p {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            white-space: pre-wrap;
+            /* Preserve line breaks */
+        }
+
+        .mood-display {
+            font-size: 2.5rem;
+            float: right;
+        }
+
+        /* --- Relic Hoard --- */
+        .relic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .relic-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .relic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border-color: var(--color-bronze);
+        }
+
+        .relic-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 4. HTML ROOT ELEMENT -->
+    <div id="root"></div>
+
+    <!-- 5. JAVASCRIPT & REACT APP -->
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, Fragment } = React;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+
+        // --- Database Initialization ---
+        const chronicleDB = new PouchDB('chronos_chronicles');
+        const oathDB = new PouchDB('chronos_oaths');
+        const relicDB = new PouchDB('chronos_relics');
+
+        // --- Helper: Get Mythic Rank ---
+        const getRank = (percentage) => {
+            const p = Number(percentage);
+            if (p === 100) return "Olympian's Triumph 👑";
+            if (p >= 81) return "Hero's Acclaim 🛡️";
+            if (p >= 51) return "Spartan's Will ⚔️";
+            if (p >= 21) return "Hoplite's Effort 🏺";
+            return "The False Promise ⏳";
+        };
+
+        // --- Helper: Predefined Relics ---
+        const PREDEFINED_RELICS = [
+            { id: 'relic_001', title: 'Aegis Pendant', desc: 'Awarded for unwavering defense of your goals.', icon: '🛡️' },
+            { id: 'relic_002', title: 'Golden Fleece', desc: 'Awarded for completing a truly epic quest.', icon: '🐏' },
+            { id: 'relic_003', title: 'Medusa\'s Gaze', desc: 'For facing a difficult challenge without flinching.', icon: '🐍' },
+            { id: 'relic_004', title: 'Crown of Midas', desc: 'For turning a project into pure gold.', icon: '👑' },
+            { id: 'relic_005', title: 'Hades\' Helm', desc: 'For persevering through a dark or difficult time.', icon: '💀' },
+            { id: 'relic_006', title: 'Trident of Poseidon', desc: 'For creating a powerful new flow in your life.', icon: '🔱' },
+            { id: 'relic_007', title: 'Zeus\'s Thunderbolt', desc: 'For a sudden and powerful breakthrough.', icon: '⚡️' },
+            { id: 'relic_008', title: 'Lyre of Orpheus', desc: 'For creating something beautiful and harmonious.', icon: '🎵' },
+        ];
+
+        // --- Main App Component ---
+        function App() {
+            const [view, setView] = useState('ledger'); // ledger, oaths, relics
+            const [chronicles, setChronicles] = useState([]);
+            const [oaths, setOaths] = useState([]);
+            const [relics, setRelics] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [toast, setToast] = useState(null); // For "Relic Unlocked!"
+
+            // Modals
+            const [showChronicleModal, setShowChronicleModal] = useState(false);
+            const [showOathModal, setShowOathModal] = useState(false);
+            const [showAssessModal, setShowAssessModal] = useState(null); // Holds the oath to assess
+
+            // --- Data Fetching (Initial Load) ---
+            const fetchData = async () => {
+                try {
+                    const chroniclesRes = await chronicleDB.allDocs({ include_docs: true });
+                    setChronicles(chroniclesRes.rows.map(r => r.doc).sort((a, b) => b.date.localeCompare(a.date)));
+
+                    const oathsRes = await oathDB.allDocs({ include_docs: true });
+                    setOaths(oathsRes.rows.map(r => r.doc).sort((a, b) => a.targetDate.localeCompare(b.targetDate)));
+
+                    const relicsRes = await relicDB.allDocs({ include_docs: true });
+                    setRelics(relicsRes.rows.map(r => r.doc));
+                } catch (err) {
+                    console.error("Error loading data:", err);
+                }
+                setLoading(false);
+            };
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            // --- Live Sync with PouchDB ---
+            useEffect(() => {
+                const chronicleListener = chronicleDB.changes({
+                    since: 'now', live: true, include_docs: true
+                }).on('change', (change) => {
+                    setChronicles(prev => {
+                        const existing = prev.find(c => c._id === change.id);
+                        if (change.deleted) {
+                            return prev.filter(c => c._id !== change.id);
+                        }
+                        if (existing) {
+                            return prev.map(c => c._id === change.id ? change.doc : c).sort((a, b) => b.date.localeCompare(a.date));
+                        }
+                        return [change.doc, ...prev].sort((a, b) => b.date.localeCompare(a.date));
+                    });
+                });
+
+                const oathListener = oathDB.changes({
+                    since: 'now', live: true, include_docs: true
+                }).on('change', (change) => {
+                    setOaths(prev => {
+                        const existing = prev.find(o => o._id === change.id);
+                        if (change.deleted) {
+                            return prev.filter(o => o._id !== change.id);
+                        }
+                        if (existing) {
+                            return prev.map(o => o._id === change.id ? change.doc : o).sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+                        }
+                        return [change.doc, ...prev].sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+                    });
+                });
+
+                const relicListener = relicDB.changes({
+                    since: 'now', live: true, include_docs: true
+                }).on('change', (change) => {
+                    setRelics(prev => {
+                        const existing = prev.find(r => r._id === change.id);
+                        if (change.deleted) {
+                            return prev.filter(r => r._id !== change.id);
+                        }
+                        if (existing) {
+                            return prev.map(r => r._id === change.id ? change.doc : r);
+                        }
+                        return [change.doc, ...prev];
+                    });
+                });
+
+                // Cleanup
+                return () => {
+                    chronicleListener.cancel();
+                    oathListener.cancel();
+                    relicListener.cancel();
+                };
+            }, []);
+
+            // --- Handlers ---
+            const handleSaveChronicle = async (chronicle) => {
+                try {
+                    const newChronicle = {
+                        ...chronicle,
+                        _id: `chronicle_${new Date().toISOString()}`,
+                        createdAt: new Date().toISOString(),
+                    };
+                    await chronicleDB.put(newChronicle);
+                    setShowChronicleModal(false);
+                } catch (err) {
+                    console.error("Error saving chronicle:", err);
+                }
+            };
+
+            const handleSaveOath = async (oath) => {
+                try {
+                    const newOath = {
+                        ...oath,
+                        _id: `oath_${new Date().toISOString()}`,
+                        createdAt: new Date().toISOString(),
+                        status: 'Active',
+                        completion_percentage: 0,
+                        review: ''
+                    };
+                    await oathDB.put(newOath);
+                    setShowOathModal(false);
+                } catch (err) {
+                    console.error("Error saving oath:", err);
+                }
+            };
+
+            const handleAssessOath = async (oath, assessment) => {
+                try {
+                    const updatedOath = {
+                        ...oath,
+                        status: 'Completed',
+                        completion_percentage: assessment.percentage,
+                        review: assessment.review,
+                        assessedAt: new Date().toISOString()
+                    };
+                    await oathDB.put(updatedOath);
+                    setShowAssessModal(null);
+
+                    // Check for relic
+                    if (assessment.percentage >= 81) {
+                        unlockRandomRelic();
+                    }
+                } catch (err) {
+                    console.error("Error assessing oath:", err);
+                }
+            };
+
+            const unlockRandomRelic = async () => {
+                const currentRelicIds = new Set(relics.map(r => r.id));
+                const availableRelics = PREDEFINED_RELICS.filter(r => !currentRelicIds.has(r.id));
+
+                if (availableRelics.length === 0) {
+                    console.log("All relics unlocked!");
+                    return;
+                }
+
+                const newRelic = availableRelics[Math.floor(Math.random() * availableRelics.length)];
+
+                try {
+                    const relicDoc = {
+                        ...newRelic,
+                        _id: `relic_${newRelic.id}`,
+                        unlockedAt: new Date().toISOString()
+                    };
+                    await relicDB.put(relicDoc);
+                    setToast(`RELIC UNLOCKED: ${newRelic.title} ${newRelic.icon}`);
+                    setTimeout(() => setToast(null), 4000);
+                } catch (err) {
+                    console.error("Error unlocking relic:", err);
+                }
+            };
+
+            // --- Render Logic ---
+            return (
+                <Fragment>
+                    <h1>CHRONOS</h1>
+
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                            <button className="button" onClick={() => setShowChronicleModal(true)}>
+                                <i data-feather="book-open" className="icon"></i>
+                                New Chronicle
+                            </button>
+                            <button className="button primary" onClick={() => setShowOathModal(true)}>
+                                <i data-feather="shield" className="icon"></i>
+                                Swear an Oath
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="tabs">
+                        <button className={`tab-button ${view === 'ledger' ? 'active' : ''}`} onClick={() => setView('ledger')}>Ledger</button>
+                        <button className={`tab-button ${view === 'oaths' ? 'active' : ''}`} onClick={() => setView('oaths')}>Oaths</button>
+                        <button className={`tab-button ${view === 'relics' ? 'active' : ''}`} onClick={() => setView('relics')}>Relic Hoard</button>
+                    </div>
+
+                    {loading && <p className="empty-state">Loading your ledger...</p>}
+
+                    {!loading && view === 'ledger' && <ChronicleList chronicles={chronicles} />}
+                    {!loading && view === 'oaths' && <OathList oaths={oaths} onAssess={(oath) => setShowAssessModal(oath)} />}
+                    {!loading && view === 'relics' && <RelicHoard relics={relics} />}
+
+                    {/* Modals */}
+                    {showChronicleModal && <ChronicleFormModal onSave={handleSaveChronicle} onClose={() => setShowChronicleModal(false)} />}
+                    {showOathModal && <OathFormModal onSave={handleSaveOath} onClose={() => setShowOathModal(false)} />}
+                    {showAssessModal && <AssessOathModal oath={showAssessModal} onSave={handleAssessOath} onClose={() => setShowAssessModal(null)} />}
+
+                    {/* Toast Notification */}
+                    {toast && (
+                        <div style={{
+                            position: 'fixed',
+                            bottom: '20px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'var(--color-bronze)',
+                            color: 'var(--color-bg)',
+                            padding: '1rem 2rem',
+                            borderRadius: '5px',
+                            fontFamily: 'var(--font-heading)',
+                            fontSize: '1.1rem',
+                            boxShadow: '0 0 15px var(--color-bronze)',
+                            zIndex: 2000
+                        }}>
+                            {toast}
+                        </div>
+                    )}
+                </Fragment>
+            );
+        }
+
+        // --- Chronicle Components ---
+        function ChronicleList({ chronicles }) {
+            if (chronicles.length === 0) {
+                return <p className="empty-state">Your ledger is empty. Record your first Chronicle.</p>;
+            }
+            return (
+                <div>
+                    {chronicles.map(chronicle => <ChronicleCard key={chronicle._id} chronicle={chronicle} />)}
+                </div>
+            );
+        }
+
+        function ChronicleCard({ chronicle }) {
+            const moodMap = {
+                'Great': '😊', 'Good': '🙂', 'Okay': '😐', 'Bad': '😟', 'Awful': '😩'
+            };
+            const date = new Date(chronicle.date).toLocaleDateString(undefined, {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' // Added timeZone
+            });
+
+            return (
+                <div className="card chronicle-card">
+                    <span className="mood-display" title={chronicle.mood}>{moodMap[chronicle.mood]}</span>
+                    <h3>{date}</h3>
+
+                    {chronicle.progress && (
+                        <Fragment>
+                            <h4>Progress</h4>
+                            <p>{chronicle.progress}</p>
+                        </Fragment>
+                    )}
+                    {chronicle.goals && (
+                        <Fragment>
+                            <h4>Goals</h4>
+                            <p>{chronicle.goals}</p>
+                        </Fragment>
+                    )}
+                    {chronicle.actions && (
+                        <Fragment>
+                            <h4>Actions</h4>
+                            <p>{chronicle.actions}</p>
+                        </Fragment>
+                    )}
+                    {chronicle.tasks_for_tomorrow && (
+                        <Fragment>
+                            <h4>Tasks for Tomorrow</h4>
+                            <p>{chronicle.tasks_for_tomorrow}</p>
+                        </Fragment>
+                    )}
+                    {chronicle.journey_reflection && (
+                        <Fragment>
+                            <h4>Journey Reflection</h4>
+                            <p>{chronicle.journey_reflection}</p>
+                        </Fragment>
+                    )}
+                </div>
+            );
+        }
+
+        function ChronicleFormModal({ onSave, onClose }) {
+            const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+            const [mood, setMood] = useState('Okay');
+            const [progress, setProgress] = useState('');
+            const [goals, setGoals] = useState('');
+            const [actions, setActions] = useState('');
+            const [tasks_for_tomorrow, setTasks] = useState('');
+            const [journey_reflection, setReflection] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave({ date, mood, progress, goals, actions, tasks_for_tomorrow, journey_reflection });
+            };
+
+            return (
+                <Modal title="Record a New Chronicle" onClose={onClose}>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="date">Date</label>
+                            <input className="form-input" type="date" id="date" value={date} onChange={e => setDate(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="mood">Mood</label>
+                            <select className="form-select" id="mood" value={mood} onChange={e => setMood(e.target.value)}>
+                                <option>Great</option>
+                                <option>Good</option>
+                                <option>Okay</option>
+                                <option>Bad</option>
+                                <option>Awful</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="progress">Progress (What did you accomplish?)</label>
+                            <textarea className="form-textarea" id="progress" value={progress} onChange={e => setProgress(e.target.value)}></textarea>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="goals">Goals (What's next?)</label>
+                            <textarea className="form-textarea" id="goals" value={goals} onChange={e => setGoals(e.target.value)}></textarea>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="actions">Actions (What specifically did you do?)</label>
+                            <textarea className="form-textarea" id="actions" value={actions} onChange={e => setActions(e.target.value)}></textarea>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="tasks">Tasks for Tomorrow</label>
+                            <textarea className="form-textarea" id="tasks" value={tasks_for_tomorrow} onChange={e => setTasks(e.target.value)}></textarea>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="reflection">Journey Reflection (Your thoughts)</label>
+                            <textarea className="form-textarea" id="reflection" value={journey_reflection} onChange={e => setReflection(e.target.value)}></textarea>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button type="button" className="button secondary" onClick={onClose}>Cancel</button>
+                            <button type="submit" className="button">Record Chronicle</button>
+                        </div>
+                    </form>
+                </Modal>
+            );
+        }
+
+        // --- Oath Components ---
+        function OathList({ oaths, onAssess }) {
+            const today = new Date().toISOString().split('T')[0];
+
+            const activeOaths = oaths.filter(o => o.status === 'Active' && o.targetDate >= today);
+            const dueOaths = oaths.filter(o => o.status === 'Active' && o.targetDate < today);
+            const completedOaths = oaths.filter(o => o.status === 'Completed');
+
+            return (
+                <div>
+                    {dueOaths.length > 0 && (
+                        <Fragment>
+                            <h2>Oaths Awaiting Judgment</h2>
+                            {dueOaths.map(oath => <OathCard key={oath._id} oath={oath} onAssess={onAssess} isDue={true} />)}
+                        </Fragment>
+                    )}
+
+                    <h2>Active Oaths</h2>
+                    {activeOaths.length === 0 && <p className="empty-state">No active Oaths. Swear one to begin your quest.</p>}
+                    {activeOaths.map(oath => <OathCard key={oath._id} oath={oath} onAssess={onAssess} />)}
+
+                    <h2>Completed Oaths</h2>
+                    {completedOaths.length === 0 && <p className="empty-state">No Oaths have been completed.</p>}
+                    {completedOaths.map(oath => <OathCard key={oath._id} oath={oath} onAssess={onAssess} />)}
+                </div>
+            );
+        }
+
+        function OathCard({ oath, onAssess, isDue }) {
+            const targetDate = new Date(oath.targetDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+            return (
+                <div className="card" style={isDue ? { borderColor: 'var(--color-crimson)', background: '#3a2020' } : {}}>
+                    <h3>{oath.title}</h3>
+                    <p><strong>Type:</strong> {oath.vowType} Oath</p>
+                    <p><strong>Target:</strong> {targetDate}</p>
+                    <p><strong>Commitment:</strong> {oath.commitment}</p>
+                    {oath.status === 'Completed' && (
+                        <p><strong>Rank: {getRank(oath.completion_percentage)}</strong> ({oath.completion_percentage}%)</p>
+                    )}
+                    {isDue && (
+                        <button className="button primary" onClick={() => onAssess(oath)}>
+                            <i data-feather="check-square" className="icon"></i>
+                            Assess Your Oath
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        function OathFormModal({ onSave, onClose }) {
+            const [title, setTitle] = useState('');
+            const [vowType, setVowType] = useState('Progress');
+            const [targetDate, setTargetDate] = useState(new Date().toISOString().split('T')[0]);
+            const [commitment, setCommitment] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave({ title, vowType, targetDate, commitment });
+            };
+
+            return (
+                <Modal title="Swear a New Oath" onClose={onClose}>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="title">Title (e.g., "Slay the Dragon of Procrastination")</label>
+                            <input className="form-input" type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="vowType">Type of Oath</label>
+                            <select className="form-select" id="vowType" value={vowType} onChange={e => setVowType(e.target.value)}>
+                                <option value="Progress">Progress Oath (A recurring commitment)</option>
+                                <option value="Plan">Plan Oath (A one-time quest)</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="targetDate">Target Date</label>
+                            <input className="form-input" type="date" id="targetDate" value={targetDate} onChange={e => setTargetDate(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="commitment">Commitment (e.g., "Study 1 hour daily" or "Complete project X")</label>
+                            <textarea className="form-textarea" id="commitment" value={commitment} onChange={e => setCommitment(e.target.value)} required></textarea>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button type="button" className="button secondary" onClick={onClose}>Cancel</button>
+                            <button type="submit" className="button primary">Swear Oath</button>
+                        </div>
+                    </form>
+                </Modal>
+            );
+        }
+
+        function AssessOathModal({ oath, onSave, onClose }) {
+            const [percentage, setPercentage] = useState(50);
+            const [review, setReview] = useState('');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSave(oath, { percentage, review });
+            };
+
+            return (
+                <Modal title={`Assess Oath: ${oath.title}`} onClose={onClose}>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label htmlFor="percentage">Completion: {percentage}%</label>
+                            <h4 style={{ color: 'var(--color-text-primary)' }}>Rank: {getRank(percentage)}</h4>
+                            <input
+                                type="range"
+                                id="percentage"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={percentage}
+                                onChange={e => setPercentage(e.target.value)}
+                                style={{ width: '100%', marginTop: '1rem' }}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="review">What did you learn?</label>
+                            <textarea className="form-textarea" id="review" value={review} onChange={e => setReview(e.target.value)}></textarea>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                            <button type="button" className="button secondary" onClick={onClose}>Cancel</button>
+                            <button type="submit" className="button primary">Complete Oath</button>
+                        </div>
+                    </form>
+                </Modal>
+            );
+        }
+
+        // --- Relic Hoard Components ---
+        function RelicHoard({ relics }) {
+            if (relics.length === 0) {
+                return <p className="empty-state">Your Relic Hoard is empty. Complete Oaths with high honors to earn Mythic Relics.</p>;
+            }
+            return (
+                <div className="relic-grid">
+                    {relics.map(relic => <RelicCard key={relic.id} relic={relic} />)}
+                </div>
+            );
+        }
+
+        function RelicCard({ relic }) {
+            return (
+                <div className="relic-card">
+                    <span className="relic-icon">{relic.icon}</span>
+                    <h4 style={{ color: 'var(--color-bronze)', fontSize: '1.1rem' }}>{relic.title}</h4>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: 0 }}>{relic.desc}</p>
+                </div>
+            );
+        }
+
+        // --- Generic Modal Component ---
+        function Modal({ children, title, onClose }) {
+            // Re-activate icons when modal opens
+            useEffect(() => {
+                feather.replace();
+            }, []);
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>{title}</h2>
+                            <button className="button secondary" onClick={onClose} style={{ padding: '0.5rem' }}>
+                                <i data-feather="x" style={{ marginRight: 0 }}></i>
+                            </button>
+                        </div>
+                        {children}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Mount the App ---
+        root.render(<App />);
+
+        // --- Activate Icons ---
+        feather.replace();
+        // Re-run feather.replace() on any state change that might add icons.
+        // A more robust way is to call it inside useEffect of components that add icons,
+        // as done in the Modal component.
+    </script>
+
+    <!-- 6. SERVICE WORKER REGISTRATION -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+
+</body>
+
+</html>
