@@ -1,0 +1,21 @@
+{
+    "short_name": "Chronos",
+    "name": "Chronos - Personal Development Tracker",
+    "icons": [
+        {
+            "src": "/chronos.app/icon-192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/chronos.app/icon-512x512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": "/chronos.app/chronos.html",
+    "background_color": "#3367D6",
+    "display": "standalone",
+    "scope": "/chronos.app/",
+    "theme_color": "#3367D6"
+}
