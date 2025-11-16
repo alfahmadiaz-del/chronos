@@ -1,9 +1,9 @@
 
 const CACHE_NAME = 'chronos-cache-v1';
 const urlsToCache = [
-    '/',
-    '/chronos.app/chronos.html',
-    '/chronos.app/manifest.json',
+    './',
+    './index.html',
+    './manifest.json',
     'https://unpkg.com/react@18/umd/react.development.js',
     'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
     'https://unpkg.com/@babel/standalone/babel.min.js',

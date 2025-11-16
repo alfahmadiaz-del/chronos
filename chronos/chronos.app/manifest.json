@@ -13,7 +13,7 @@
             "sizes": "512x512"
         }
     ],
-    "start_url": "/chronos.app/chronos.html",
+    "start_url": "./index.html",
     "background_color": "#3367D6",
     "display": "standalone",
     "scope": "/chronos.app/",
