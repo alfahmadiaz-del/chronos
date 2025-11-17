@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'chronos-cache-v1';
+const CACHE_NAME = 'chronos-cache-v2';
 const urlsToCache = [
     './',
     './index.html',
@@ -8,8 +8,8 @@ const urlsToCache = [
     'https://unpkg.com/react-dom@18/umd/react-dom.development.js',
     'https://unpkg.com/@babel/standalone/babel.min.js',
     'https://cdn.tailwindcss.com',
-    'https://cdn.jsdelivr.net/npm/pouchdb@7.3.0/dist/pouchdb.min.js',
-    'https://cdn.jsdelivr.net/npm/pouchdb-find@7.3.0/dist/pouchdb.find.min.js'
+    'https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js',
+    'https://cdn.jsdelivr.net/npm/pouchdb-find@8.0.1/dist/pouchdb.find.min.js'
 ];
 
 self.addEventListener('install', event => {
@@ -20,6 +20,19 @@ self.addEventListener('install', event => {
                 return cache.addAll(urlsToCache);
             })
     );
+});
+
+self.addEventListener('activate', event => {
+  var cacheKeeplist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(keyList => {
+      return Promise.all(keyList.map(key => {
+        if (cacheKeeplist.indexOf(key) === -1) {
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
 });
 
 self.addEventListener('fetch', event => {
