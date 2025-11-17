@@ -16,6 +16,7 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
+        PouchDB.plugin(PouchDB.find);
         class LocalDatabase {
             constructor() {
                 this.db = new PouchDB('chronos');
@@ -367,7 +368,8 @@
             );
         }
 
-        ReactDOM.render(<App />, document.getElementById('root'));
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
     <script>
         if ('serviceWorker' in navigator) {
