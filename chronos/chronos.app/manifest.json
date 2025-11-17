@@ -1,18 +1,20 @@
 {
     "short_name": "Chronos",
     "name": "Chronos - Personal Development Tracker",
-    "icons": [
-        {
-            "src": "/chronos.app/icon-192x192.png",
-            "type": "image/png",
-            "sizes": "192x192"
-        },
-        {
-            "src": "/chronos.app/icon-512x512.png",
-            "type": "image/png",
-            "sizes": "512x512"
-        }
-    ],
+   "icons": [
+    {
+      "src": "https://placehold.co/192x192/8c7853/1a1a1a?text=C",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/8c7853/1a1a1a?text=Chronos",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
     "start_url": "./index.html",
     "background_color": "#3367D6",
     "display": "standalone",
